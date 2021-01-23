@@ -99,7 +99,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
     const modalOpenBtn = document.querySelectorAll('[data-modal]'),
         modal = document.querySelector('.modal'),
-    modalTimerId = setTimeout(openModal, 5000);
+        modalTimerId = setTimeout(openModal, 50000);
 
 
     function
@@ -202,7 +202,6 @@ window.addEventListener("DOMContentLoaded", () => {
         30,
         "vegy",
         '.menu .container',
-
     ).render();
 
     new Menu(
@@ -213,7 +212,6 @@ window.addEventListener("DOMContentLoaded", () => {
         25,
         "elite",
         '.menu .container',
-
     ).render();
 
     new Menu(
@@ -225,4 +223,83 @@ window.addEventListener("DOMContentLoaded", () => {
         '.menu .container',
     ).render();
 
+    //forms
+
+    const forms = document.querySelectorAll('form');
+
+    const message = {
+        loading: 'img/spinner.svg',
+        success: "thanks we will be connect with you so soon",
+        failure: "something wrong"
+
+    }
+
+    forms.forEach(item => {
+
+        postData(item);
+
+    });
+
+    function postData(form) {
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const stasusMessage = document.createElement('img');
+            stasusMessage.src = message.loading;
+            stasusMessage.style.cssText = ` 
+                    display:block;
+                    margin: 0 auto;
+            `;
+            form.insertAdjacentElement('afterend', stasusMessage);
+            const formData = new FormData(form);
+            const object = {};
+            formData.forEach(function (value, key) {
+                object[key] = value;
+            });
+            fetch('server.php', {
+                method: 'POST',
+                headers: {
+                    'Content-type': 'application/json'
+                },
+                body: JSON.stringify(object)
+            })
+                .then(data => data.text())
+                .then(data => {
+                    console.log(data);
+                    showThanksModal(message.success);
+                    form.reset();
+                    stasusMessage.remove();
+                }).catch(() => {
+                showModalScroll(message.failure);
+            }).finally(() => {
+                form.reset();
+            });
+        });
+    }
+
+    function showThanksModal(message) {
+        const prevModalDialog = document.querySelector('.modal__dialog');
+
+        prevModalDialog.classList.add('hide');
+        openModal();
+
+        const thanksModal = document.createElement('div');
+        thanksModal.classList.add('modal__dialog');
+        thanksModal.innerHTML = `
+                <div class = "modal__content">
+                        <div class="modal__close" data-close >×</div>
+                        <div class="modal__title">${message}</div>
+                </div>
+        
+        `;
+
+        document.querySelector('.modal').append(thanksModal);
+        setTimeout(() => {
+            thanksModal.remove();
+            prevModalDialog.classList.add('show');
+            prevModalDialog.classList.remove('hide');
+            closeModal();
+        }, 4000);
+    }
 });

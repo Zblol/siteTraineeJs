@@ -33,7 +33,7 @@ window.addEventListener("DOMContentLoaded", () => {
         if (target && target.classList.contains('tabheader__item')) {
             tabs.forEach((item, i) => {
 
-                if (target == item) {
+                if (target === item) {
                     hideTabContent();
                     showTabContent(i);
                 }
@@ -98,7 +98,6 @@ window.addEventListener("DOMContentLoaded", () => {
     //modal window
 
     const modalOpenBtn = document.querySelectorAll('[data-modal]'),
-        modalCloseBtn = document.querySelector('[data-close]'),
         modal = document.querySelector('.modal'),
     modalTimerId = setTimeout(openModal, 5000);
 
@@ -125,10 +124,9 @@ window.addEventListener("DOMContentLoaded", () => {
         document.body.style.overflow = '';
     }
 
-    modalCloseBtn.addEventListener('click', closeModal);
 
     modal.addEventListener('click', (e) => {
-        if (e.target == modal) {
+        if (e.target === modal || e.target.getAttribute('data-close') === '') {
             closeModal();
         }
     });

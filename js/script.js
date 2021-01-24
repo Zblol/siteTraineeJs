@@ -150,15 +150,15 @@ window.addEventListener("DOMContentLoaded", () => {
     window.addEventListener('scroll', showModalScroll);
 
 
-    class Menu {
+    class MenuCard {
 
-        constructor(subtitle, description, img, totalCost, alt, parentSelector, ...classes) {
+        constructor(title, descr, img, price, altimg, parentSelector, ...classes) {
 
-            this.subtitle = subtitle;
-            this.description = description;
+            this.title = title;
+            this.descr = descr;
             this.img = img;
-            this.totalCost = totalCost;
-            this.alt = alt;
+            this.price = price;
+            this.altimg = altimg;
             this.classes = classes;
             this.parent = document.querySelector(parentSelector);
             this.transfer = 80;
@@ -181,49 +181,48 @@ window.addEventListener("DOMContentLoaded", () => {
 
             }
             element.innerHTML = `
-                           <img src= ${this.img} alt=${this.alt}>
-                            <h3 class="menu__item-subtitle">${this.subtitle}</h3>
-                            <div class="menu__item-descr">${this.description}</div>
+                           <img src= ${this.img} alt=${this.altimg}>
+                            <h3 class="menu__item-subtitle">${this.title}</h3>
+                            <div class="menu__item-descr">${this.descr}</div>
                             <div class="menu__item-divider"></div>  
                             <div class="menu__item-price">
                             <div class="menu__item-cost">Цена:</div>
-                            <div class="menu__item-total"><span>${this.totalCost}</span> руб/день</div>
+                            <div class="menu__item-total"><span>${this.price}</span> руб/день</div>
                            
                     `;
             this.parent.append(element);
         }
     }
 
-    new Menu(
-        'Меню "Фитнес"',
-        'Меню "Фитнес" - это новый подход к приготовлению блюд: больше свежих овощей и фруктов. Продукт активных и здоровых людей. Это абсолютно новый продукт с оптимальной ценой и высоким качеством!',
+    const getResource = async (url) => {
+        const res = await fetch(url);
 
-        "img/tabs/vegy.jpg",
-        30,
-        "vegy",
-        '.menu .container',
-    ).render();
+        if( !res.ok){
+          throw  new Error(`Could not fetch ${url}, status: ${res.status}`);
+        }
 
-    new Menu(
-        'Меню "Постное"',
-        'Меню “Постное” - это тщательный подбор ингредиентов: полное отсутствие продуктов животного происхождения, молоко из миндаля, овса, кокоса или гречки, правильное количество белков за счет тофу и импортных вегетарианских стейков.',
+        return await res.json();
+    };
 
-        "img/tabs/elite.jpg",
-        25,
-        "elite",
-        '.menu .container',
-    ).render();
+    // getResource('http://localhost:3000/menu')
+    //     .then(data => {
+    //
+    //         data.forEach(({img,altimg,title,descr,price}) => {
+    //
+    //             new MenuCard(title,descr,img,price,altimg, '.menu .container').render();
+    //         });
+    //
+    //     });
+    axios.get('http://localhost:3000/menu')
+        .then(data => {
+            data.data.forEach(({img,altimg,title,descr,price}) => {
+                new MenuCard(title,descr,img,price,altimg, '.menu .container').render();
+            });
+        });
 
-    new Menu(
-        'Меню "Премиум"',
-        'В меню “Премиум” мы используем не только красивый дизайн упаковки, но и качественное исполнение блюд. Красная рыба, морепродукты, фрукты - ресторанное меню без похода в ресторан!',
-        "img/tabs/post.jpg",
-        21,
-        "post",
-        '.menu .container',
-    ).render();
 
-    //forms
+
+  /** FORMS **/
 
     const forms = document.querySelectorAll('form');
 
@@ -235,12 +234,22 @@ window.addEventListener("DOMContentLoaded", () => {
     }
 
     forms.forEach(item => {
-
-        postData(item);
-
+        bindPostData(item);
     });
 
-    function postData(form) {
+    const postData = async (url, data) => {
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-type': 'application/json'
+            },
+            body: data
+        });
+
+        return await res.json();
+    };
+
+    function bindPostData(form) {
 
         form.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -252,19 +261,11 @@ window.addEventListener("DOMContentLoaded", () => {
                     margin: 0 auto;
             `;
             form.insertAdjacentElement('afterend', stasusMessage);
+
             const formData = new FormData(form);
-            const object = {};
-            formData.forEach(function (value, key) {
-                object[key] = value;
-            });
-            fetch('server.php', {
-                method: 'POST',
-                headers: {
-                    'Content-type': 'application/json'
-                },
-                body: JSON.stringify(object)
-            })
-                .then(data => data.text())
+            const json = JSON.stringify(Object.fromEntries(formData.entries()));
+
+            postData(' http://localhost:3000/requests', json)
                 .then(data => {
                     console.log(data);
                     showThanksModal(message.success);
@@ -302,4 +303,13 @@ window.addEventListener("DOMContentLoaded", () => {
             closeModal();
         }, 4000);
     }
+
+    fetch('http://localhost:3000/menu')
+        .then(data => data.json())
+        .then(res => console.log(res));
+
 });
+
+                /** SLIDER   **/
+
+
